@@ -1,7 +1,7 @@
 # Age Detection on Static Image     
 
 ## Dataset  
-Preprocessing on images already finised --resulting images saved in json as  
+Preprocessing on images already finished --resulting images saved in json as  
 datframes  
 
 ## Testing different modeling  
