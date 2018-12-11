@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
+get_ipython().run_line_magic('matplotlib', 'inline')
 # Call needed libraries
 from keras.utils import to_categorical
 from keras.models import Sequential
@@ -15,11 +16,13 @@ import pandas as pd
 import json
 import math
 import os
+import keras
+from IPython.display import clear_output
 os.environ["TF_CPP_MIN_LOG_LEVEL"]="3"
 from pprint import pprint
 
 
-# In[ ]:
+# In[2]:
 
 
 # Load and parse through the json files
@@ -47,21 +50,21 @@ print(data_images.shape)
 print(data_ages.shape)
 
 
-# In[ ]:
+# In[3]:
 
 
 # Saved the ages into the array as a bin size of 10 from 0 to 100
 data_ages[0]
 
 
-# In[ ]:
+# In[4]:
 
 
 # plot the first image in the dataset
 plt.imshow(data_images[0])
 
 
-# In[ ]:
+# In[5]:
 
 
 # Bins
@@ -87,7 +90,7 @@ print(x_train.shape)
 print(x_test.shape)
 
 
-# In[ ]:
+# In[6]:
 
 
 # Reshaping the test images to fit the model
@@ -97,7 +100,7 @@ x_train = x_train.reshape(50000, 28, 28, 1)
 x_test = x_test.reshape(2938, 28, 28, 1)
 
 
-# In[ ]:
+# In[7]:
 
 
 # One-hot encode the ages/results 
@@ -107,13 +110,44 @@ y_test = to_categorical(y_test)
 # The first age is 24 so the category index is 2 from 0-9 bins
 
 
-# In[ ]:
+# In[8]:
 
 
 y_train[0]
 
 
-# In[ ]:
+# In[9]:
+
+
+class PlotLosses(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.i = 0
+        self.x = []
+        self.losses = []
+        self.val_losses = []
+        
+        self.fig = plt.figure()
+        
+        self.logs = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        
+        self.logs.append(logs)
+        self.x.append(self.i)
+        self.losses.append(logs.get('loss'))
+        self.val_losses.append(logs.get('val_loss'))
+        self.i += 1
+        
+        clear_output(wait=True)
+        plt.plot(self.x, self.losses, label="loss")
+        plt.plot(self.x, self.val_losses, label="val_loss")
+        plt.legend()
+        plt.show();
+        
+plot = PlotLosses()
+
+
+# In[10]:
 
 
 # Create the sequential model from keras (CNN)
@@ -128,33 +162,41 @@ model.add(Flatten())
 model.add(Dense(10, activation='softmax'))
 
 
-# In[ ]:
+# In[11]:
 
 
 # Compile the model - include the accuracy metric and loss function
 # Loss function for now is categorical_crossentropy
+# loss='mean_squared_error'
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# In[ ]:
+# In[12]:
 
 
 # Most important part - please work :(
 # Training the model
-number_of_epochs = 3
-model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=number_of_epochs)
+# val_loss is the value of cost function for your cross validation data and loss is the value of cost function for your training data
+number_of_epochs = 1
+model.fit(x_train, y_train, validation_data=(x_test, y_test),callbacks=[plot], epochs=number_of_epochs)
 
 
-# In[ ]:
+# In[13]:
 
 
 # Predict using our trained model
 model.predict(x_test[:10])
 
 
-# In[ ]:
+# In[14]:
 
 
 # Check the accuracy of the prediction
 y_test[:10]
+
+
+# In[15]:
+
+
+model.save_weights('models/' + str(number_of_epochs) + '_epochs.h5')
 
