@@ -72,7 +72,7 @@ class PlotLosses(keras.callbacks.Callback):
         plt.legend()
         plt.show()
 
-def run_model(x_train, y_train, x_test, y_test, plot_type):
+def run_model(x_train, y_train, x_test, y_test, plot_type, epochs):
     # Create the sequential model from keras (CNN)
     model = Sequential()
     model.add(Conv2D(64, kernel_size=3, activation='relu', input_shape=(28, 28, 1)))
@@ -85,7 +85,7 @@ def run_model(x_train, y_train, x_test, y_test, plot_type):
                   metrics=['accuracy'])
 
     # Training the model
-    number_of_epochs = 3
+    number_of_epochs = epochs
     model.fit(x_train, y_train, validation_data=(x_test, y_test),
               epochs=number_of_epochs, verbose=1)
 
@@ -93,8 +93,9 @@ def run_model(x_train, y_train, x_test, y_test, plot_type):
 
 
 def main():
+    epochs = int(input("How many epochs: "))
     plot = PlotLosses()
     x_train, y_train, x_test, y_test = parse_Dataset()
-    run_model(x_train, y_train, x_test, y_test, plot)
+    run_model(x_train, y_train, x_test, y_test, plot, epochs)
     print("Model Saved")
 main()
