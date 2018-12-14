@@ -1,6 +1,6 @@
 from keras.utils import to_categorical
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten
+from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout
 from keras.models import load_model
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,6 +31,8 @@ def parse_Dataset():
     data_images = np.array(data_images)
     data_ages = np.array(data_ages)
 
+    size = len(data_images[0])
+
     # Size overall = 52938
     x_train = np.array(data_images[0:50000])
     y_train = np.array(data_ages[0:50000])
@@ -39,14 +41,14 @@ def parse_Dataset():
     y_test = np.array(data_ages[50000:])
 
     # The number of images, size of images, grayscale indicator
-    x_train = x_train.reshape(50000, 28, 28, 1)
-    x_test = x_test.reshape(2938, 28, 28, 1)
+    x_train = x_train.reshape(50000, size, size, 1)
+    x_test = x_test.reshape(2939, size, size, 1)
 
     # One-hot encode the ages/results
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
 
-    return x_train, y_train, x_test, y_test
+    return x_train, y_train, x_test, y_test, size
 
 
 # Code snippet from gitlab for plotting (Just for testing)
@@ -72,16 +74,24 @@ class PlotLosses(keras.callbacks.Callback):
         plt.legend()
         plt.show()
 
-def run_model(x_train, y_train, x_test, y_test, plot_type, epochs):
+
+def run_model(x_train, y_train, x_test, y_test, plot_type, epochs, size):
     # Create the sequential model from keras (CNN)
     model = Sequential()
-    model.add(Conv2D(64, kernel_size=3, activation='relu', input_shape=(28, 28, 1)))
+
+    # Add the layers to the sequential model
+    model.add(Conv2D(64, kernel_size=3, activation='relu',
+                     input_shape=(size, size, 1)))
     model.add(Conv2D(32, kernel_size=3, activation='relu'))
+
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
     model.add(Flatten())
+
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(10, activation='softmax'))
 
-    
-    # Compile the model - include the accuracy metric and loss function
     model.compile(optimizer='adam', loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
@@ -90,13 +100,13 @@ def run_model(x_train, y_train, x_test, y_test, plot_type, epochs):
     model.fit(x_train, y_train, validation_data=(x_test, y_test),
               epochs=number_of_epochs, verbose=1)
 
-    model.save('models/' + str(number_of_epochs) +'_epochs.h5')
+    model.save('models/' + str(number_of_epochs) + '_epochs.h5')
 
 
 def main():
     epochs = int(input("How many epochs: "))
     plot = PlotLosses()
-    x_train, y_train, x_test, y_test = parse_Dataset()
-    run_model(x_train, y_train, x_test, y_test, plot, epochs)
+    x_train, y_train, x_test, y_test, size = parse_Dataset()
+    run_model(x_train, y_train, x_test, y_test, plot, epochs, size)
     print("Model Saved")
 main()
