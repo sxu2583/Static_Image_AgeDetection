@@ -80,6 +80,7 @@ def run_model(x_train, y_train, x_test, y_test, plot_type, epochs):
     model.add(Flatten())
     model.add(Dense(10, activation='softmax'))
 
+    
     # Compile the model - include the accuracy metric and loss function
     model.compile(optimizer='adam', loss='categorical_crossentropy',
                   metrics=['accuracy'])
