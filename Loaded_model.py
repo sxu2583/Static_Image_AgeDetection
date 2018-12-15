@@ -19,9 +19,6 @@ def main():
     # Reload a saved model(Architecutre and weights) and run the prediction
     number_of_epochs = int(input("How many Epochs: "))
     x_train, y_train, x_test, y_test, size = parse_Dataset()
-
     new_model = load_model('models/100_epochs.h5')
-    #new_model.fit(x_train, y_train, validation_data=(x_test, y_test),
-    # epochs=number_of_epochs)
-
+    new_model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=number_of_epochs)
 main()

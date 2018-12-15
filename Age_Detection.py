@@ -97,10 +97,26 @@ def run_model(x_train, y_train, x_test, y_test, plot_type, epochs, size):
 
     # Training the model
     number_of_epochs = epochs
-    model.fit(x_train, y_train, validation_data=(x_test, y_test),
+    history = model.fit(x_train, y_train, validation_data=(x_test, y_test),
               epochs=number_of_epochs, verbose=1)
+    # summarize history for accuracy
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
-    model.save('models/' + str(number_of_epochs) + '_epochs.h5')
+    history.save('models/' + str(number_of_epochs) + '_epochs.h5')
 
 
 def main():
