@@ -2,11 +2,11 @@ from keras.utils import to_categorical
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, \
     BatchNormalization, Activation
+from keras import regularizers
 from keras import optimizers
 from keras.models import load_model
-#TODO: Might need to reset matplotlibs display to agg if using ssh machine
-#import matplotlib
-#matplotlib.use('agg')
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -82,10 +82,24 @@ class PlotLosses(keras.callbacks.Callback):
 
 def run_model(x_train, y_train, x_test, y_test, plot_type, epochs, size):
     # Create the sequential model from keras (CNN)
-    model = Sequential()
 
     #TODO: Add batch normalization layers
     # Add the layers to the sequential model
+    """
+    model.add(Conv2D(64, kernel_size=3, activation='relu',
+                     input_shape=(size, size, 1)))
+    model.add(Conv2D(32, kernel_size=3, activation='relu'))
+
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    model.add(Flatten())
+
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(10, activation='softmax'))
+    """
+    model = Sequential()
+
     model.add(Conv2D(64, kernel_size=3, use_bias=False,
                      input_shape=(size, size, 1)))
     model.add(BatchNormalization())
@@ -96,29 +110,38 @@ def run_model(x_train, y_train, x_test, y_test, plot_type, epochs, size):
     model.add(Activation("relu"))
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+
+    #model.add(Dropout(0.25))
+
     model.add(Flatten())
 
-    model.add(Dense(128, use_bias=False))
+    model.add(Dense(128, use_bias=False, kernel_regularizer=regularizers.l2(
+        0.01)))
+    model.add(BatchNormalization())
+    model.add(Activation("relu"))
+
+    model.add(Dense(64, use_bias=False, kernel_regularizer=regularizers.l2(
+        0.01)))
     model.add(BatchNormalization())
     model.add(Activation("relu"))
 
     model.add(Dropout(0.5))
+
     model.add(Dense(10, activation='softmax'))
 
+    #keras.utils.plot_model(model, to_file='test_keras_plot_model.png',show_shapes=True)
+
     #TODO: Add in a lower learning rate - 0.001
-    adam = optimizers.adam(lr=0.01)
+    adam = optimizers.adam(lr=0.001)
     model.compile(optimizer=adam, loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
     # Training the model
     number_of_epochs = epochs
 
-    #TODO: change batch size otherwise default is 32
     history = model.fit(x_train, y_train, validation_data=(x_test, y_test),
               epochs=number_of_epochs, verbose=1)
 
-    #TODO: Create visual for model results (from training)
     # summarize history for accuracy
     plt.plot(history.history['acc'])
     plt.plot(history.history['val_acc'])
